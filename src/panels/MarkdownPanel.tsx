@@ -252,6 +252,29 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             >
               <button
                 onClick={() => {
+                  setViewMode('book');
+                  setCurrentSlide(0);
+                }}
+                style={{
+                  background:
+                    viewMode === 'book' ? theme.colors.primary : 'transparent',
+                  color:
+                    viewMode === 'book'
+                      ? theme.colors.background
+                      : theme.colors.textSecondary,
+                  border: 'none',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  fontFamily: theme.fonts.body,
+                  transition: 'all 0.2s',
+                }}
+              >
+                Slides
+              </button>
+              <button
+                onClick={() => {
                   setViewMode('document');
                   setCurrentSlide(0);
                 }}
@@ -274,29 +297,6 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                 }}
               >
                 Document
-              </button>
-              <button
-                onClick={() => {
-                  setViewMode('book');
-                  setCurrentSlide(0);
-                }}
-                style={{
-                  background:
-                    viewMode === 'book' ? theme.colors.primary : 'transparent',
-                  color:
-                    viewMode === 'book'
-                      ? theme.colors.background
-                      : theme.colors.textSecondary,
-                  border: 'none',
-                  padding: '6px 12px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  fontFamily: theme.fonts.body,
-                  transition: 'all 0.2s',
-                }}
-              >
-                Slides
               </button>
             </div>
           )}
@@ -353,7 +353,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             enableHtmlPopout={true}
             enableKeyboardScrolling={true}
             tocDisplayMode="sidebar"
-            tocSidebarPosition="right"
+            tocSidebarPosition="left"
             initialTocOpen={true}
           />
         )}
