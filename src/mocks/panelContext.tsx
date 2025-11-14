@@ -5,7 +5,6 @@ import type {
   PanelActions,
   PanelEventEmitter,
   PanelEvent,
-  PanelEventType,
   GitStatus,
 } from '../types';
 
@@ -24,68 +23,59 @@ export const mockGitStatus: GitStatus = {
  */
 export const createMockContext = (
   overrides?: Partial<PanelContextValue>
-): PanelContextValue => ({
-  repositoryPath: '/Users/developer/my-project',
-  repository: {
-    name: 'my-project',
-    path: '/Users/developer/my-project',
-    branch: 'main',
-    remote: 'origin',
-  },
-  gitStatus: mockGitStatus,
-  gitStatusLoading: false,
-  markdownFiles: [
-    {
-      path: 'README.md',
-      title: 'Project README',
-      lastModified: Date.now() - 3600000,
+): PanelContextValue => {
+  const slices = new Map();
+
+  // Add git data slice
+  slices.set('git', {
+    scope: 'repository' as const,
+    name: 'git',
+    data: mockGitStatus,
+    loading: false,
+    error: null,
+    refresh: async () => {
+      console.log('[Mock] Refreshing git slice');
     },
-    {
-      path: 'docs/API.md',
-      title: 'API Documentation',
-      lastModified: Date.now() - 86400000,
+  });
+
+  return {
+    currentScope: {
+      type: 'repository' as const,
+      repository: {
+        name: 'my-project',
+        path: '/Users/developer/my-project',
+        branch: 'main',
+        remote: 'origin',
+      },
     },
-  ],
-  fileTree: {
-    name: 'my-project',
-    path: '/Users/developer/my-project',
-    type: 'directory',
-    children: [
-      {
-        name: 'src',
-        path: '/Users/developer/my-project/src',
-        type: 'directory',
-      },
-      {
-        name: 'package.json',
-        path: '/Users/developer/my-project/package.json',
-        type: 'file',
-      },
-    ],
-  },
-  packages: [
-    { name: 'react', version: '18.3.1', path: '/node_modules/react' },
-    { name: 'typescript', version: '5.0.4', path: '/node_modules/typescript' },
-  ],
-  quality: {
-    coverage: 85,
-    issues: 3,
-    complexity: 12,
-  },
-  loading: false,
-  refresh: async () => {
-    console.log('[Mock] Context refresh called');
-  },
-  hasSlice: (slice) => {
-    console.log('[Mock] Checking slice:', slice);
-    return true;
-  },
-  isSliceLoading: (slice) => {
-    console.log('[Mock] Checking if slice is loading:', slice);
-    return false;
-  },
-  ...overrides,
-});
+    slices,
+    getSlice: (name: string) => {
+      console.log('[Mock] Getting slice:', name);
+      return slices.get(name);
+    },
+    getWorkspaceSlice: (name: string) => {
+      console.log('[Mock] Getting workspace slice:', name);
+      return slices.get(name);
+    },
+    getRepositorySlice: (name: string) => {
+      console.log('[Mock] Getting repository slice:', name);
+      return slices.get(name);
+    },
+    hasSlice: (name: string) => {
+      console.log('[Mock] Checking slice:', name);
+      return slices.has(name);
+    },
+    isSliceLoading: (name: string) => {
+      console.log('[Mock] Checking if slice is loading:', name);
+      const slice = slices.get(name);
+      return slice?.loading ?? false;
+    },
+    refresh: async () => {
+      console.log('[Mock] Context refresh called');
+    },
+    ...overrides,
+  };
+};
 
 /**
  * Mock Panel Actions for Storybook
@@ -112,7 +102,7 @@ export const createMockActions = (
  * Mock Event Emitter for Storybook
  */
 export const createMockEvents = (): PanelEventEmitter => {
-  const handlers = new Map<PanelEventType, Set<(event: PanelEvent) => void>>();
+  const handlers = new Map<string, Set<(event: PanelEvent) => void>>();
 
   return {
     emit: (event) => {

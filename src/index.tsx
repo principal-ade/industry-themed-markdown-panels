@@ -7,28 +7,26 @@ import type { PanelDefinition, PanelContextValue } from './types';
  */
 export const panels: PanelDefinition[] = [
   {
-    id: 'principal-ade.markdown-viewer',
-    name: 'Markdown Viewer',
-    icon: '📄',
-    version: '0.1.0',
-    author: 'Principal ADE',
-    description: 'Themed markdown rendering panel with document and slide views',
+    metadata: {
+      id: 'principal-ade.markdown-viewer',
+      name: 'Markdown Viewer',
+      icon: '📄',
+      version: '0.2.0',
+      author: 'Principal ADE',
+      description: 'Themed markdown rendering panel with document and slide views',
+    },
     component: MarkdownPanel,
 
     // Optional: Called when this specific panel is mounted
     onMount: async (context: PanelContextValue) => {
       console.log('Markdown Panel mounted');
-      console.log('Repository:', context.repositoryPath);
+      const repository = context.currentScope.repository;
+      console.log('Repository:', repository?.path);
     },
 
     // Optional: Called when this specific panel is unmounted
     onUnmount: async (_context: PanelContextValue) => {
       console.log('Markdown Panel unmounting');
-    },
-
-    // Optional: Called when data slices change
-    onDataChange: (slice, data) => {
-      console.log(`Data changed for slice: ${slice}`, data);
     },
   },
 ];

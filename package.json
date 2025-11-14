@@ -1,6 +1,6 @@
 {
   "name": "@principal-ade/industry-themed-markdown-panels",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Markdown rendering panels with industry theming support",
   "type": "module",
   "main": "dist/panels.bundle.js",
@@ -28,13 +28,9 @@
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
+    "@principal-ade/panel-framework-core": "^0.1.2",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@principal-ade/panel-framework-core": {
-      "optional": true
-    }
   },
   "dependencies": {
     "@a24z/industry-theme": "^0.1.0",
@@ -54,6 +50,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.2",
     "@eslint/js": "^9.32.0",
+    "@principal-ade/panel-framework-core": "^0.1.2",
     "@storybook/addon-essentials": "^8.5.0",
     "@storybook/addon-interactions": "^8.5.0",
     "@storybook/addon-links": "^8.5.0",

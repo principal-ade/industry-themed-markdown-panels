@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FileText, Plus, Minus } from 'lucide-react';
 import { useTheme } from '@a24z/industry-theme';
 import {
@@ -7,94 +7,62 @@ import {
   parseMarkdownIntoPresentation,
 } from 'themed-markdown';
 import 'themed-markdown/dist/index.css';
-import type { PanelComponentProps } from '../types';
+import type { PanelComponentProps, ActiveFileSlice } from '../types';
+
+/**
+ * Get the basename of a file path
+ */
+const basename = (path: string): string => {
+  const parts = path.split('/');
+  return parts[parts.length - 1] || path;
+};
 
 /**
  * MarkdownPanel - A panel for rendering markdown documents with industry theming
  *
- * This panel demonstrates:
- * - Themed markdown rendering using DocumentView from themed-markdown
- * - View mode switching between document and slides
- * - Font size controls
- * - Slide navigation
- * - Integration with the panel framework
+ * This panel integrates with the panel framework to:
+ * - Listen to file:opened events
+ * - Read content from the active-file context slice
+ * - Display markdown with themed rendering using DocumentView
+ * - Support view mode switching between document and slides
+ * - Provide font size controls and slide navigation
  */
 export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   context,
   actions: _actions,
+  events,
 }) => {
   const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
 
-  // Sample markdown content - in a real implementation, this would come from context
-  const sampleMarkdown = `# Welcome to Industry-Themed Markdown
+  // Listen for file:opened events
+  useEffect(() => {
+    const unsubscribe = events.on('file:opened', (event) => {
+      console.log('Markdown Panel: File opened:', event.payload);
+      // Reset view mode when new file is opened
+      setViewMode('document');
+      setCurrentSlide(0);
+    });
+    return unsubscribe;
+  }, [events]);
 
-This panel demonstrates the **themed-markdown** component with industry theming.
+  // Get the active file from context slice
+  const activeFile = context.getSlice<ActiveFileSlice>('active-file');
 
-## Features
+  // Check if the active file is a markdown file
+  const isMarkdown =
+    activeFile?.data?.type === 'markdown' ||
+    activeFile?.data?.path?.match(/\.(md|mdx|markdown)$/i);
 
-- Beautiful markdown rendering
-- Syntax highlighting for code blocks
-- Industry-themed styling
-- Multiple view modes (document and slides)
-
-## Code Example
-
-\`\`\`typescript
-function greet(name: string): string {
-  return \`Hello, \${name}!\`;
-}
-
-console.log(greet('World'));
-\`\`\`
-
-## Lists and More
-
-1. First item
-2. Second item
-3. Third item
-
-- Bullet point
-- Another bullet
-- And another
-
----
-
-## Slide 2: More Content
-
-This is the second slide, demonstrating the slide-based presentation mode.
-
-> Blockquotes are supported too!
-
-### Tables
-
-| Feature | Status |
-|---------|--------|
-| Markdown | ✅ |
-| Theming | ✅ |
-| Slides | ✅ |
-
----
-
-## Slide 3: Final Slide
-
-Thank you for exploring the themed markdown panel!
-
-\`\`\`json
-{
-  "framework": "themed-markdown",
-  "theme": "industry",
-  "awesome": true
-}
-\`\`\`
-`;
+  // Get markdown content
+  const markdownContent = activeFile?.data?.content || '';
 
   // Parse markdown into slides using themed-markdown utility
   const presentation = useMemo(
-    () => parseMarkdownIntoPresentation(sampleMarkdown),
-    [sampleMarkdown]
+    () => parseMarkdownIntoPresentation(markdownContent),
+    [markdownContent]
   );
   const slides = presentation.slides.map((slide) => slide.location.content);
   const hasSlides = slides.length > 1;
@@ -106,6 +74,78 @@ Thank you for exploring the themed markdown panel!
   const handleFontSizeDecrease = () => {
     setFontSizeScale((prev) => Math.max(prev - 0.1, 0.5));
   };
+
+  // Show loading state while content is being fetched
+  if (activeFile?.loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+          fontFamily: theme.fonts.body,
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: theme.colors.textSecondary }}>
+            Loading {activeFile.data?.path || 'file'}...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if fetch failed
+  if (activeFile?.error) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+          fontFamily: theme.fonts.body,
+        }}
+      >
+        <div style={{ textAlign: 'center', color: theme.colors.error }}>
+          <p>Error loading markdown file</p>
+          <p style={{ fontSize: '14px', marginTop: '8px' }}>
+            {activeFile.error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show placeholder if no file is selected or if it's not a markdown file
+  if (!activeFile?.data || !isMarkdown) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+          fontFamily: theme.fonts.body,
+        }}
+      >
+        <p style={{ color: theme.colors.textSecondary }}>
+          Select a markdown file to preview
+        </p>
+      </div>
+    );
+  }
+
+  // Display the file source info
+  const sourceInfo = activeFile.data.source;
+  const sourceLabel =
+    sourceInfo.type === 'local'
+      ? `Local: ${sourceInfo.name}`
+      : `${sourceInfo.provider}: ${sourceInfo.owner}/${sourceInfo.name}@${sourceInfo.location}`;
 
   return (
     <div
@@ -143,7 +183,7 @@ Thank you for exploring the themed markdown panel!
               fontFamily: theme.fonts.body,
             }}
           >
-            Markdown Viewer
+            {basename(activeFile.data.path)}
           </span>
         </div>
 
@@ -263,21 +303,19 @@ Thank you for exploring the themed markdown panel!
         </div>
       </div>
 
-      {/* Repository info banner */}
-      {context.repositoryPath && (
-        <div
-          style={{
-            padding: '8px 16px',
-            backgroundColor: theme.colors.backgroundSecondary,
-            borderBottom: `1px solid ${theme.colors.border}`,
-            fontSize: '12px',
-            color: theme.colors.textSecondary,
-            fontFamily: theme.fonts.body,
-          }}
-        >
-          Repository: <code>{context.repositoryPath}</code>
-        </div>
-      )}
+      {/* Source info banner */}
+      <div
+        style={{
+          padding: '8px 16px',
+          backgroundColor: theme.colors.backgroundSecondary,
+          borderBottom: `1px solid ${theme.colors.border}`,
+          fontSize: '12px',
+          color: theme.colors.textSecondary,
+          fontFamily: theme.fonts.body,
+        }}
+      >
+        Source: <code>{sourceLabel}</code>
+      </div>
 
       {/* Content */}
       <div
