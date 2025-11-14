@@ -33,7 +33,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   events,
 }) => {
   const { theme } = useTheme();
-  const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
+  const [viewMode, setViewMode] = useState<'document' | 'book'>('book');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
 
@@ -352,6 +352,9 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             slideIdPrefix="markdown-panel-book"
             enableHtmlPopout={true}
             enableKeyboardScrolling={true}
+            tocDisplayMode="sidebar"
+            tocSidebarPosition="right"
+            initialTocOpen={true}
           />
         )}
       </div>
