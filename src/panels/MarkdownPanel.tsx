@@ -41,8 +41,8 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   useEffect(() => {
     const unsubscribe = events.on('file:opened', (event) => {
       console.log('Markdown Panel: File opened:', event.payload);
-      // Reset view mode when new file is opened
-      setViewMode('document');
+      // Reset to default view mode when new file is opened
+      setViewMode('book');
       setCurrentSlide(0);
     });
     return unsubscribe;
