@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MarkdownPanel } from './MarkdownPanel';
 import { createMockPanelContext } from '../mocks/panelContext';
-import { ThemeProvider, slateTheme } from '@a24z/industry-theme';
+import { ThemeProvider, slateTheme } from '@principal-ade/industry-theme';
 
 const meta = {
   title: 'Panels/MarkdownPanel',

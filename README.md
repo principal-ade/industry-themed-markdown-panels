@@ -6,7 +6,7 @@ This panel demonstrates how to integrate `themed-markdown` with the panel framew
 
 ## Features
 
-- **Themed Markdown Rendering**: Uses `themed-markdown` with `@a24z/industry-theme` for consistent, professional styling
+- **Themed Markdown Rendering**: Uses `themed-markdown` with `@principal-ade/industry-theme` for consistent, professional styling
 - **Multiple View Modes**: Switch between document view (all content) and slide view (paginated)
 - **Font Size Controls**: Adjustable font scaling from 50% to 300%
 - **Slide Navigation**: Navigate through markdown slides with previous/next controls
@@ -63,7 +63,7 @@ industry-themed-markdown-panels/
 The panel exports a single `MarkdownPanel` that demonstrates:
 
 1. How to use `DocumentView` from `themed-markdown`
-2. How to integrate with `@a24z/industry-theme`
+2. How to integrate with `@principal-ade/industry-theme`
 3. How to parse markdown into slides using `parseMarkdownIntoPresentation`
 4. How to build interactive panel controls
 5. How to access panel context for repository information
