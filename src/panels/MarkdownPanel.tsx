@@ -271,7 +271,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                   transition: 'all 0.2s',
                 }}
               >
-                Slides
+                Sections
               </button>
               <button
                 onClick={() => {
