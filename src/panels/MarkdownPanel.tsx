@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FileText, Plus, Minus } from 'lucide-react';
+import { Plus, Minus, BookOpen, FileText } from 'lucide-react';
 import { useTheme } from '@principal-ade/industry-theme';
 import {
   DocumentView,
@@ -36,6 +36,18 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   const [viewMode, setViewMode] = useState<'document' | 'book'>('book');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Listen for file:opened events
   useEffect(() => {
@@ -140,13 +152,6 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
     );
   }
 
-  // Display the file source info
-  const sourceInfo = activeFile.data.source;
-  const sourceLabel =
-    sourceInfo.type === 'local'
-      ? `Local: ${sourceInfo.name}`
-      : `${sourceInfo.provider}: ${sourceInfo.owner}/${sourceInfo.name}@${sourceInfo.location}`;
-
   return (
     <div
       style={{
@@ -174,7 +179,6 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FileText size={20} color={theme.colors.primary} />
           <span
             style={{
               fontSize: '14px',
@@ -188,55 +192,59 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Font size controls */}
-          <button
-            onClick={handleFontSizeDecrease}
-            title="Decrease Font Size"
-            style={{
-              background: 'none',
-              border: `1px solid ${theme.colors.border}`,
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              color: theme.colors.textSecondary,
-              borderRadius: '4px',
-              transition: 'all 0.2s',
-            }}
-          >
-            <Minus size={14} />
-          </button>
+          {/* Font size controls - hidden on mobile */}
+          {!isMobile && (
+            <>
+              <button
+                onClick={handleFontSizeDecrease}
+                title="Decrease Font Size"
+                style={{
+                  background: 'none',
+                  border: `1px solid ${theme.colors.border}`,
+                  padding: '6px 8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: theme.colors.textSecondary,
+                  borderRadius: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Minus size={14} />
+              </button>
 
-          <span
-            style={{
-              fontSize: '12px',
-              color: theme.colors.textSecondary,
-              userSelect: 'none',
-              minWidth: '45px',
-              textAlign: 'center',
-              fontFamily: theme.fonts.body,
-            }}
-          >
-            {Math.round(fontSizeScale * 100)}%
-          </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: theme.colors.textSecondary,
+                  userSelect: 'none',
+                  minWidth: '45px',
+                  textAlign: 'center',
+                  fontFamily: theme.fonts.body,
+                }}
+              >
+                {Math.round(fontSizeScale * 100)}%
+              </span>
 
-          <button
-            onClick={handleFontSizeIncrease}
-            title="Increase Font Size"
-            style={{
-              background: 'none',
-              border: `1px solid ${theme.colors.border}`,
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              color: theme.colors.textSecondary,
-              borderRadius: '4px',
-              transition: 'all 0.2s',
-            }}
-          >
-            <Plus size={14} />
-          </button>
+              <button
+                onClick={handleFontSizeIncrease}
+                title="Increase Font Size"
+                style={{
+                  background: 'none',
+                  border: `1px solid ${theme.colors.border}`,
+                  padding: '6px 8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: theme.colors.textSecondary,
+                  borderRadius: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Plus size={14} />
+              </button>
+            </>
+          )}
 
           {/* View mode toggle - only show if document has slides */}
           {hasSlides && (
@@ -247,7 +255,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                 borderRadius: '4px',
                 border: `1px solid ${theme.colors.border}`,
                 overflow: 'hidden',
-                marginLeft: '8px',
+                marginLeft: isMobile ? '0' : '8px',
               }}
             >
               <button
@@ -255,6 +263,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                   setViewMode('book');
                   setCurrentSlide(0);
                 }}
+                title="Sections"
                 style={{
                   background:
                     viewMode === 'book' ? theme.colors.primary : 'transparent',
@@ -263,21 +272,25 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                       ? theme.colors.background
                       : theme.colors.textSecondary,
                   border: 'none',
-                  padding: '6px 12px',
+                  padding: isMobile ? '6px 8px' : '6px 12px',
                   cursor: 'pointer',
                   fontSize: '12px',
                   fontWeight: 500,
                   fontFamily: theme.fonts.body,
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                Sections
+                {isMobile ? <BookOpen size={16} /> : 'Sections'}
               </button>
               <button
                 onClick={() => {
                   setViewMode('document');
                   setCurrentSlide(0);
                 }}
+                title="Document"
                 style={{
                   background:
                     viewMode === 'document'
@@ -288,33 +301,22 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                       ? theme.colors.background
                       : theme.colors.textSecondary,
                   border: 'none',
-                  padding: '6px 12px',
+                  padding: isMobile ? '6px 8px' : '6px 12px',
                   cursor: 'pointer',
                   fontSize: '12px',
                   fontWeight: 500,
                   fontFamily: theme.fonts.body,
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                Document
+                {isMobile ? <FileText size={16} /> : 'Document'}
               </button>
             </div>
           )}
         </div>
-      </div>
-
-      {/* Source info banner */}
-      <div
-        style={{
-          padding: '8px 16px',
-          backgroundColor: theme.colors.backgroundSecondary,
-          borderBottom: `1px solid ${theme.colors.border}`,
-          fontSize: '12px',
-          color: theme.colors.textSecondary,
-          fontFamily: theme.fonts.body,
-        }}
-      >
-        Source: <code>{sourceLabel}</code>
       </div>
 
       {/* Content */}

@@ -12,7 +12,7 @@ const meta = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <ThemeProvider initialTheme={slateTheme}>
+      <ThemeProvider theme={slateTheme}>
         <div style={{ height: '100vh', width: '100vw' }}>
           <Story />
         </div>
