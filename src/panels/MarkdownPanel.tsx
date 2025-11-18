@@ -7,7 +7,7 @@ import {
   parseMarkdownIntoPresentation,
 } from 'themed-markdown';
 import 'themed-markdown/dist/index.css';
-import type { PanelComponentProps, ActiveFileSlice } from '../types';
+import type { PanelComponentProps, ActiveFileSlice, MarkdownPanelConfig } from '../types';
 
 /**
  * Get the basename of a file path
@@ -31,12 +31,17 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   context,
   actions: _actions,
   events,
+  metadata,
 }) => {
   const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'document' | 'book'>('book');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Get configuration from panel metadata
+  const config = (metadata?.config as MarkdownPanelConfig) || {};
+  const initialTocOpen = config.initialTocOpen ?? false;
 
   // Detect mobile viewport
   useEffect(() => {
@@ -356,7 +361,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             enableKeyboardScrolling={true}
             tocDisplayMode="sidebar"
             tocSidebarPosition="left"
-            initialTocOpen={true}
+            initialTocOpen={initialTocOpen}
           />
         )}
       </div>
