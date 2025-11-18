@@ -1,5 +1,5 @@
 import { MarkdownPanel } from './panels/MarkdownPanel';
-import type { PanelDefinition, PanelContextValue, MarkdownPanelConfig } from './types';
+import type { PanelDefinition, PanelContextValue } from './types';
 
 /**
  * Export array of panel definitions.
@@ -14,9 +14,6 @@ export const panels: PanelDefinition[] = [
       version: '0.2.0',
       author: 'Principal ADE',
       description: 'Themed markdown rendering panel with document and slide views',
-      config: {
-        initialTocOpen: false,
-      } as MarkdownPanelConfig,
     },
     component: MarkdownPanel,
 

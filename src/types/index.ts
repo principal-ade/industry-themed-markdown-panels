@@ -66,14 +66,3 @@ export interface QualityMetrics {
   issues?: number;
   complexity?: number;
 }
-
-/**
- * Configuration options for the Markdown Panel.
- */
-export interface MarkdownPanelConfig {
-  /**
-   * Whether the Table of Contents sidebar should be open by default in book/sections mode.
-   * @default false
-   */
-  initialTocOpen?: boolean;
-}
