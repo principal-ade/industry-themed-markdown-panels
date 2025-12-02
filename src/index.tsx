@@ -1,5 +1,6 @@
 import { MarkdownPanel } from './panels/MarkdownPanel';
 import type { PanelDefinition, PanelContextValue } from './types';
+import { markdownPanelTools, markdownPanelToolsMetadata } from './tools';
 
 /**
  * Export array of panel definitions.
@@ -14,6 +15,8 @@ export const panels: PanelDefinition[] = [
       version: '0.2.0',
       author: 'Principal ADE',
       description: 'Themed markdown rendering panel with document and slide views',
+      // UTCP-compatible tools this panel exposes
+      tools: markdownPanelTools,
     },
     component: MarkdownPanel,
 
@@ -46,3 +49,15 @@ export const onPackageLoad = async () => {
 export const onPackageUnload = async () => {
   console.log('Panel package unloading - Industry-Themed Markdown Panels');
 };
+
+/**
+ * Export tools for server-safe imports.
+ * Use '@industry-theme/markdown-panels/tools' to import without React dependencies.
+ */
+export {
+  markdownPanelTools,
+  markdownPanelToolsMetadata,
+  scrollToSectionTool,
+  navigateSlideTool,
+  changeFontSizeTool,
+} from './tools';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MarkdownPanel } from './MarkdownPanel';
 import { createMockPanelContext } from '../mocks/panelContext';
 import { ThemeProvider, slateTheme } from '@principal-ade/industry-theme';
