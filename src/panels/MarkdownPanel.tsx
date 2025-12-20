@@ -10,14 +10,6 @@ import 'themed-markdown/dist/index.css';
 import type { PanelComponentProps, ActiveFileSlice } from '../types';
 
 /**
- * Configuration options for the MarkdownPanel
- */
-export interface MarkdownPanelConfig {
-  /** Maximum width for the content area (default: "100%") */
-  maxWidth?: string | number;
-}
-
-/**
  * Get the basename of a file path
  */
 const basename = (path: string): string => {
@@ -39,11 +31,8 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   context,
   actions: _actions,
   events,
-  config,
 }) => {
   const { theme } = useTheme();
-  const panelConfig = (config || {}) as MarkdownPanelConfig;
-  const maxWidth = panelConfig.maxWidth ?? '100%';
   const [viewMode, setViewMode] = useState<'document' | 'book'>('book');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
@@ -349,7 +338,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             slideIdPrefix="markdown-panel"
             showSectionHeaders={true}
             showSeparators={true}
-            maxWidth={maxWidth}
+            maxWidth="100%"
           />
         ) : (
           <SlidePresentationBook

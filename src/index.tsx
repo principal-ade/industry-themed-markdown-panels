@@ -1,4 +1,4 @@
-import { MarkdownPanel, MarkdownPanelConfig } from './panels/MarkdownPanel';
+import { MarkdownPanel } from './panels/MarkdownPanel';
 import type { PanelDefinition, PanelContextValue } from './types';
 import { markdownPanelTools, markdownPanelToolsMetadata } from './tools';
 
@@ -61,6 +61,3 @@ export {
   navigateSlideTool,
   changeFontSizeTool,
 } from './tools';
-
-// Export panel config type
-export type { MarkdownPanelConfig };
