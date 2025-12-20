@@ -166,8 +166,8 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
       {/* Header */}
       <div
         style={{
-          height: '39px',
-          minHeight: '39px',
+          height: '40px',
+          minHeight: '40px',
           borderBottom: `1px solid ${theme.colors.border}`,
           display: 'flex',
           alignItems: 'center',
