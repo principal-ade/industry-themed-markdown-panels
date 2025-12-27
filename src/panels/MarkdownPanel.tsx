@@ -37,6 +37,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -49,12 +50,39 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Listen for preference events
+  useEffect(() => {
+    const unsubscribe = events.on('markdown-panel:set-preferences', (event) => {
+      const payload = event.payload as {
+        viewMode?: 'document' | 'book';
+        fontSizeScale?: number;
+      };
+      if (payload.viewMode) {
+        setViewMode(payload.viewMode);
+      }
+      if (payload.fontSizeScale !== undefined) {
+        setFontSizeScale(payload.fontSizeScale);
+      }
+      setPreferencesLoaded(true);
+    });
+    return unsubscribe;
+  }, [events]);
+
+  // Request preferences on mount
+  useEffect(() => {
+    events.emit({
+      type: 'markdown-panel:request-preferences',
+      source: 'markdown-panel',
+      timestamp: Date.now(),
+      payload: {},
+    });
+  }, [events]);
+
   // Listen for file:opened events
   useEffect(() => {
     const unsubscribe = events.on('file:opened', (event) => {
       console.log('Markdown Panel: File opened:', event.payload);
-      // Reset to default view mode when new file is opened
-      setViewMode('book');
+      // Reset slide position when new file is opened (but keep view mode preference)
       setCurrentSlide(0);
     });
     return unsubscribe;
@@ -80,11 +108,40 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   const hasSlides = slides.length > 1;
 
   const handleFontSizeIncrease = () => {
-    setFontSizeScale((prev) => Math.min(prev + 0.1, 3.0));
+    setFontSizeScale((prev) => {
+      const newScale = Math.min(prev + 0.1, 3.0);
+      events.emit({
+        type: 'markdown-panel:font-scale-change',
+        source: 'markdown-panel',
+        timestamp: Date.now(),
+        payload: { fontSizeScale: newScale },
+      });
+      return newScale;
+    });
   };
 
   const handleFontSizeDecrease = () => {
-    setFontSizeScale((prev) => Math.max(prev - 0.1, 0.5));
+    setFontSizeScale((prev) => {
+      const newScale = Math.max(prev - 0.1, 0.5);
+      events.emit({
+        type: 'markdown-panel:font-scale-change',
+        source: 'markdown-panel',
+        timestamp: Date.now(),
+        payload: { fontSizeScale: newScale },
+      });
+      return newScale;
+    });
+  };
+
+  const handleViewModeChange = (mode: 'document' | 'book') => {
+    setViewMode(mode);
+    setCurrentSlide(0);
+    events.emit({
+      type: 'markdown-panel:view-mode-change',
+      source: 'markdown-panel',
+      timestamp: Date.now(),
+      payload: { viewMode: mode },
+    });
   };
 
   // Show loading state while content is being fetched
@@ -259,10 +316,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
               }}
             >
               <button
-                onClick={() => {
-                  setViewMode('book');
-                  setCurrentSlide(0);
-                }}
+                onClick={() => handleViewModeChange('book')}
                 title="Sections"
                 style={{
                   background:
@@ -286,10 +340,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                 {isMobile ? <BookOpen size={16} /> : 'Sections'}
               </button>
               <button
-                onClick={() => {
-                  setViewMode('document');
-                  setCurrentSlide(0);
-                }}
+                onClick={() => handleViewModeChange('document')}
                 title="Document"
                 style={{
                   background:
