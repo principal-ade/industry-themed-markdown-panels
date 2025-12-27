@@ -331,13 +331,11 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
       >
         {viewMode === 'document' ? (
           <DocumentView
-            content={slides}
+            content={markdownContent}
             theme={theme}
             fontSizeScale={fontSizeScale}
             onCheckboxChange={() => {}}
             slideIdPrefix="markdown-panel"
-            showSectionHeaders={true}
-            showSeparators={true}
             maxWidth="100%"
           />
         ) : (
