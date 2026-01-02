@@ -6,6 +6,7 @@ import {
   SlidePresentationBook,
   parseMarkdownIntoPresentation,
 } from 'themed-markdown';
+import type { RepositoryInfo } from '@principal-ade/markdown-utils';
 import 'themed-markdown/dist/index.css';
 import type { PanelComponentProps, ActiveFileSlice } from '../types';
 
@@ -15,6 +16,15 @@ import type { PanelComponentProps, ActiveFileSlice } from '../types';
 const basename = (path: string): string => {
   const parts = path.split('/');
   return parts[parts.length - 1] || path;
+};
+
+/**
+ * Get the directory path (everything except the filename)
+ */
+const getBasePath = (filePath: string): string => {
+  const parts = filePath.split('/');
+  parts.pop(); // Remove filename
+  return parts.join('/');
 };
 
 /**
@@ -106,6 +116,25 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   );
   const slides = presentation.slides.map((slide) => slide.location.content);
   const hasSlides = slides.length > 1;
+
+  // Extract repository info from the file source for image URL transformation
+  const repositoryInfo: RepositoryInfo | undefined = useMemo(() => {
+    const source = activeFile?.data?.source;
+    if (!source) return undefined;
+
+    // Determine the branch - use location for branch type, or metadata.currentBranch for local
+    const branch =
+      source.locationType === 'branch'
+        ? source.location
+        : source.metadata?.currentBranch || 'main';
+
+    return {
+      owner: source.owner,
+      repo: source.name,
+      branch,
+      basePath: getBasePath(activeFile?.data?.path || ''),
+    };
+  }, [activeFile?.data?.source, activeFile?.data?.path]);
 
   const handleFontSizeIncrease = () => {
     setFontSizeScale((prev) => {
@@ -388,6 +417,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             onCheckboxChange={() => {}}
             slideIdPrefix="markdown-panel"
             maxWidth="100%"
+            repositoryInfo={repositoryInfo}
           />
         ) : (
           <SlidePresentationBook
@@ -407,6 +437,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
             tocDisplayMode="sidebar"
             tocSidebarPosition="left"
             initialTocOpen={false}
+            repositoryInfo={repositoryInfo}
           />
         )}
       </div>
