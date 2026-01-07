@@ -43,7 +43,7 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   events,
 }) => {
   const { theme } = useTheme();
-  const [viewMode, setViewMode] = useState<'document' | 'book'>('book');
+  const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -345,30 +345,6 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
               }}
             >
               <button
-                onClick={() => handleViewModeChange('book')}
-                title="Sections"
-                style={{
-                  background:
-                    viewMode === 'book' ? theme.colors.primary : 'transparent',
-                  color:
-                    viewMode === 'book'
-                      ? theme.colors.background
-                      : theme.colors.textSecondary,
-                  border: 'none',
-                  padding: isMobile ? '6px 8px' : '6px 12px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  fontFamily: theme.fonts.body,
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                {isMobile ? <BookOpen size={16} /> : 'Sections'}
-              </button>
-              <button
                 onClick={() => handleViewModeChange('document')}
                 title="Document"
                 style={{
@@ -393,6 +369,30 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
                 }}
               >
                 {isMobile ? <FileText size={16} /> : 'Document'}
+              </button>
+              <button
+                onClick={() => handleViewModeChange('book')}
+                title="Sections"
+                style={{
+                  background:
+                    viewMode === 'book' ? theme.colors.primary : 'transparent',
+                  color:
+                    viewMode === 'book'
+                      ? theme.colors.background
+                      : theme.colors.textSecondary,
+                  border: 'none',
+                  padding: isMobile ? '6px 8px' : '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  fontFamily: theme.fonts.body,
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                {isMobile ? <BookOpen size={16} /> : 'Sections'}
               </button>
             </div>
           )}
