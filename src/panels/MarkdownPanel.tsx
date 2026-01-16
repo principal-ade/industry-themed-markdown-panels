@@ -27,20 +27,30 @@ const getBasePath = (filePath: string): string => {
   return parts.join('/');
 };
 
+export interface MarkdownPanelProps extends PanelComponentProps {
+  /**
+   * Optional file path to display.
+   * If provided, this takes precedence over the active-file context slice.
+   * This allows the host to control panel state via props instead of context.
+   */
+  filePath?: string | null;
+}
+
 /**
  * MarkdownPanel - A panel for rendering markdown documents with industry theming
  *
  * This panel integrates with the panel framework to:
  * - Listen to file:opened events
- * - Read content from the active-file context slice
+ * - Read content from the active-file context slice (or from filePath prop)
  * - Display markdown with themed rendering using DocumentView
  * - Support view mode switching between document and slides
  * - Provide font size controls and slide navigation
  */
-export const MarkdownPanel: React.FC<PanelComponentProps> = ({
+export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   context,
-  actions: _actions,
+  actions,
   events,
+  filePath: filePathProp,
 }) => {
   const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
@@ -48,6 +58,18 @@ export const MarkdownPanel: React.FC<PanelComponentProps> = ({
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
+  // When controlled by filePath prop, load the file content
+  useEffect(() => {
+    if (filePathProp) {
+      console.log('[MarkdownPanel] Loading file from prop:', filePathProp);
+      // Check if setActiveFile action exists (it's a custom action added by RepositoryPanelContext)
+      const setActiveFile = (actions as any)?.setActiveFile;
+      if (typeof setActiveFile === 'function') {
+        setActiveFile(filePathProp);
+      }
+    }
+  }, [filePathProp, actions]);
 
   // Detect mobile viewport
   useEffect(() => {
