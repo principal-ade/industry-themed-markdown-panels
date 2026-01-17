@@ -34,6 +34,11 @@ export interface MarkdownPanelProps extends PanelComponentProps {
    * This allows the host to control panel state via props instead of context.
    */
   filePath?: string | null;
+  /**
+   * Optional width to pass to DocumentView for layout calculations.
+   * Useful when embedding in panels that need responsive width handling.
+   */
+  width?: number;
 }
 
 /**
@@ -51,6 +56,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   actions,
   events,
   filePath: filePathProp,
+  width,
 }) => {
   const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
@@ -440,6 +446,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
             slideIdPrefix="markdown-panel"
             maxWidth="100%"
             repositoryInfo={repositoryInfo}
+            width={width}
           />
         ) : (
           <SlidePresentationBook
@@ -460,6 +467,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
             tocSidebarPosition="left"
             initialTocOpen={false}
             repositoryInfo={repositoryInfo}
+            width={width}
           />
         )}
       </div>
