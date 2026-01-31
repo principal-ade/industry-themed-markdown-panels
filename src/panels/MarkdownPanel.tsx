@@ -65,17 +65,60 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
-  // When controlled by filePath prop, load the file content
+  // Local state for prop-based content loading (used when filePath prop is provided)
+  const [propBasedContent, setPropBasedContent] = useState<{
+    path: string;
+    content: string;
+    loading: boolean;
+    error: Error | null;
+  } | null>(null);
+
+  // When filePath prop is provided, load content directly (for tabbed usage)
+  // This avoids sharing state via the active-file slice
   useEffect(() => {
-    if (filePathProp) {
-      console.log('[MarkdownPanel] Loading file from prop:', filePathProp);
-      // Check if setActiveFile action exists (it's a custom action added by RepositoryPanelContext)
-      const setActiveFile = (actions as any)?.setActiveFile;
-      if (typeof setActiveFile === 'function') {
-        setActiveFile(filePathProp);
-      }
+    if (!filePathProp) {
+      setPropBasedContent(null);
+      return;
     }
-  }, [filePathProp, actions]);
+
+    // Check if we already have this file loaded
+    if (propBasedContent?.path === filePathProp && !propBasedContent.loading) {
+      return;
+    }
+
+    const loadContent = async () => {
+      console.log('[MarkdownPanel] Loading file from prop:', filePathProp);
+      setPropBasedContent({ path: filePathProp, content: '', loading: true, error: null });
+
+      try {
+        const fileSystem = context.adapters?.fileSystem;
+        if (fileSystem?.readFile) {
+          const content = await fileSystem.readFile(filePathProp);
+          setPropBasedContent({ path: filePathProp, content, loading: false, error: null });
+        } else {
+          // Fallback: try setActiveFile if fileSystem adapter not available
+          const setActiveFile = (actions as any)?.setActiveFile;
+          if (typeof setActiveFile === 'function') {
+            await setActiveFile(filePathProp);
+            // Content will come from slice in this case
+            setPropBasedContent(null);
+          } else {
+            throw new Error('No file reading capability available');
+          }
+        }
+      } catch (err) {
+        console.error('[MarkdownPanel] Failed to load file:', err);
+        setPropBasedContent({
+          path: filePathProp,
+          content: '',
+          loading: false,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
+      }
+    };
+
+    loadContent();
+  }, [filePathProp, context.adapters?.fileSystem, actions]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -126,8 +169,24 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
     return unsubscribe;
   }, [events]);
 
-  // Get the active file from context slice
-  const activeFile = context.getSlice<ActiveFileSlice>('active-file');
+  // Get the active file from context slice (fallback when filePath prop not provided)
+  const activeFileSlice = context.getSlice<ActiveFileSlice>('active-file');
+
+  // Determine which source to use: prop-based content or slice
+  const usePropBasedContent = filePathProp && propBasedContent?.path === filePathProp;
+
+  // Unified file state
+  const activeFile = usePropBasedContent
+    ? {
+        data: {
+          path: propBasedContent.path,
+          content: propBasedContent.content,
+          type: 'markdown' as const,
+        },
+        loading: propBasedContent.loading,
+        error: propBasedContent.error,
+      }
+    : activeFileSlice;
 
   // Check if the active file is a markdown file
   const isMarkdown =
@@ -147,7 +206,10 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
 
   // Extract repository info from the file source for image URL transformation
   const repositoryInfo: RepositoryInfo | undefined = useMemo(() => {
-    const source = activeFile?.data?.source;
+    // Only slice-based content has source info; prop-based content doesn't
+    if (usePropBasedContent || !activeFileSlice?.data) return undefined;
+
+    const source = 'source' in activeFileSlice.data ? activeFileSlice.data.source : undefined;
     if (!source) return undefined;
 
     // Determine the branch - use location for branch type, or metadata.currentBranch for local
@@ -160,9 +222,9 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
       owner: source.owner,
       repo: source.name,
       branch,
-      basePath: getBasePath(activeFile?.data?.path || ''),
+      basePath: getBasePath(activeFileSlice?.data?.path || ''),
     };
-  }, [activeFile?.data?.source, activeFile?.data?.path]);
+  }, [usePropBasedContent, activeFileSlice?.data]);
 
   const handleFontSizeIncrease = () => {
     setFontSizeScale((prev) => {
