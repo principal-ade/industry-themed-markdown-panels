@@ -1,6 +1,6 @@
 {
   "name": "@industry-theme/markdown-panels",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "description": "Markdown rendering panels with industry theming support",
   "type": "module",
   "main": "dist/panels.bundle.js",
