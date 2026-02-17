@@ -1,6 +1,11 @@
 import { MarkdownPanel } from './panels/MarkdownPanel';
 import type { MarkdownPanelProps } from './panels/MarkdownPanel';
-import type { PanelDefinition, PanelContextValue } from './types';
+import type {
+  PanelDefinition,
+  PanelContextValue,
+  MarkdownPanelActions,
+  MarkdownPanelContext,
+} from './types';
 import { markdownPanelTools, markdownPanelToolsMetadata } from './tools';
 
 // Export the component and its props type
@@ -11,7 +16,7 @@ export type { MarkdownPanelProps };
  * Export array of panel definitions.
  * This is the required export for panel extensions.
  */
-export const panels: PanelDefinition[] = [
+export const panels: PanelDefinition<MarkdownPanelActions, MarkdownPanelContext>[] = [
   {
     metadata: {
       id: 'principal-ade.markdown-viewer',
@@ -20,20 +25,21 @@ export const panels: PanelDefinition[] = [
       version: '0.2.0',
       author: 'Principal ADE',
       description: 'Themed markdown rendering panel with document and slide views',
+      slices: ['active-file'],
       // UTCP-compatible tools this panel exposes
       tools: markdownPanelTools,
     },
     component: MarkdownPanel,
 
     // Optional: Called when this specific panel is mounted
-    onMount: async (context: PanelContextValue) => {
+    onMount: async (context: PanelContextValue<MarkdownPanelContext>) => {
       console.log('Markdown Panel mounted');
       const repository = context.currentScope.repository;
       console.log('Repository:', repository?.path);
     },
 
     // Optional: Called when this specific panel is unmounted
-    onUnmount: async (_context: PanelContextValue) => {
+    onUnmount: async (_context: PanelContextValue<MarkdownPanelContext>) => {
       console.log('Markdown Panel unmounting');
     },
   },

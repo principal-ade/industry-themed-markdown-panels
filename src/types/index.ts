@@ -15,6 +15,12 @@ export type {
   FileTreeSource,
 } from '@principal-ade/panel-framework-core';
 
+// Import for local use in interface definitions
+import type {
+  PanelActions,
+  ActiveFileContext,
+} from '@principal-ade/panel-framework-core';
+
 /**
  * Git change status types.
  */
@@ -65,4 +71,25 @@ export interface QualityMetrics {
   coverage?: number;
   issues?: number;
   complexity?: number;
+}
+
+/**
+ * Actions interface for Markdown Panel
+ * Defines the actions this panel requires from the host
+ */
+export interface MarkdownPanelActions extends PanelActions {
+  /**
+   * Read file contents as string.
+   * Required for loading markdown files (both filePath prop and active-file slice modes).
+   */
+  readFile: (path: string) => Promise<string>;
+}
+
+/**
+ * Context interface for Markdown Panel
+ * Defines the typed data slices this panel requires
+ */
+export interface MarkdownPanelContext extends ActiveFileContext {
+  // Markdown panel uses:
+  // - activeFile: For rendering markdown content
 }

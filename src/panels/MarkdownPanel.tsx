@@ -8,7 +8,12 @@ import {
 } from 'themed-markdown';
 import type { RepositoryInfo } from '@principal-ade/markdown-utils';
 import 'themed-markdown/dist/index.css';
-import type { PanelComponentProps, ActiveFileSlice } from '../types';
+import type {
+  PanelComponentProps,
+  ActiveFileSlice,
+  MarkdownPanelActions,
+  MarkdownPanelContext,
+} from '../types';
 
 /**
  * Get the basename of a file path
@@ -27,7 +32,8 @@ const getBasePath = (filePath: string): string => {
   return parts.join('/');
 };
 
-export interface MarkdownPanelProps extends PanelComponentProps {
+export interface MarkdownPanelProps
+  extends PanelComponentProps<MarkdownPanelActions, MarkdownPanelContext> {
   /**
    * Optional file path to display.
    * If provided, this takes precedence over the active-file context slice.
@@ -91,21 +97,8 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
       setPropBasedContent({ path: filePathProp, content: '', loading: true, error: null });
 
       try {
-        const fileSystem = context.adapters?.fileSystem;
-        if (fileSystem?.readFile) {
-          const content = await fileSystem.readFile(filePathProp);
-          setPropBasedContent({ path: filePathProp, content, loading: false, error: null });
-        } else {
-          // Fallback: try setActiveFile if fileSystem adapter not available
-          const setActiveFile = (actions as any)?.setActiveFile;
-          if (typeof setActiveFile === 'function') {
-            await setActiveFile(filePathProp);
-            // Content will come from slice in this case
-            setPropBasedContent(null);
-          } else {
-            throw new Error('No file reading capability available');
-          }
-        }
+        const content = await actions.readFile(filePathProp);
+        setPropBasedContent({ path: filePathProp, content, loading: false, error: null });
       } catch (err) {
         console.error('[MarkdownPanel] Failed to load file:', err);
         setPropBasedContent({
@@ -118,7 +111,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
     };
 
     loadContent();
-  }, [filePathProp, context.adapters?.fileSystem, actions]);
+  }, [filePathProp, actions]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -170,7 +163,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   }, [events]);
 
   // Get the active file from context slice (fallback when filePath prop not provided)
-  const activeFileSlice = context.getSlice<ActiveFileSlice>('active-file');
+  const { activeFile: activeFileSlice } = context;
 
   // Determine which source to use: prop-based content or slice
   const usePropBasedContent = filePathProp && propBasedContent?.path === filePathProp;
