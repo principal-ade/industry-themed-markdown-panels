@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MarkdownPanel } from './MarkdownPanel';
 import { createMockPanelContext } from '../mocks/panelContext';
 import { ThemeProvider, slateTheme } from '@principal-ade/industry-theme';
+import { createFileTreeSource } from '@principal-ai/repository-abstraction';
 
 const meta = {
   title: 'Panels/MarkdownPanel',
@@ -95,31 +96,50 @@ Welcome to the presentation!
 Thank you for viewing!
 `;
 
+// Create a mock FileTreeSource using the factory
+const mockSource = createFileTreeSource.localWorkingCopy(
+  '/Users/example/my-project',
+  'example-org',
+  'my-project',
+  'https://github.com/example-org/my-project',
+  'main'
+);
+
 // Helper to create context with active markdown file
 const createMarkdownContext = (content: string, filename = 'README.md') => {
   const mockContext = createMockPanelContext();
 
-  // Add active-file slice
-  (mockContext.context.slices as Map<string, any>).set('active-file', {
-    scope: 'repository' as const,
-    name: 'active-file',
-    data: {
-      path: `/Users/example/my-project/${filename}`,
-      type: 'markdown' as const,
-      content: content,
-      source: {
-        type: 'local' as const,
-        name: 'my-project',
+  // Add activeFile slice directly to context
+  const contextWithActiveFile = {
+    ...mockContext,
+    context: {
+      ...mockContext.context,
+      activeFile: {
+        scope: 'repository' as const,
+        name: 'active-file',
+        data: {
+          path: `/Users/example/my-project/${filename}`,
+          type: 'markdown' as const,
+          content: content,
+          source: mockSource,
+        },
+        loading: false,
+        error: null,
+        refresh: async () => {
+          console.log('[Mock] Refreshing active-file slice');
+        },
       },
     },
-    loading: false,
-    error: null,
-    refresh: async () => {
-      console.log('[Mock] Refreshing active-file slice');
+    actions: {
+      ...mockContext.actions,
+      readFile: async (path: string) => {
+        console.log('[Mock] Reading file:', path);
+        return content;
+      },
     },
-  });
+  };
 
-  return mockContext;
+  return contextWithActiveFile;
 };
 
 export const Default: Story = {
@@ -131,5 +151,28 @@ export const Presentation: Story = {
 };
 
 export const NoFile: Story = {
-  args: createMockPanelContext(),
+  args: (() => {
+    const mockContext = createMockPanelContext();
+    return {
+      ...mockContext,
+      context: {
+        ...mockContext.context,
+        activeFile: {
+          scope: 'repository' as const,
+          name: 'active-file',
+          data: null,
+          loading: false,
+          error: null,
+          refresh: async () => {},
+        },
+      },
+      actions: {
+        ...mockContext.actions,
+        readFile: async (path: string) => {
+          console.log('[Mock] Reading file:', path);
+          return '';
+        },
+      },
+    };
+  })(),
 };

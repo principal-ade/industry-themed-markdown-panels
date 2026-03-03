@@ -21,23 +21,9 @@ export const mockGitStatus: GitStatus = {
 /**
  * Mock Panel Context for Storybook
  */
-export const createMockContext = (
-  overrides?: Partial<PanelContextValue>
-): PanelContextValue => {
-  const slices = new Map();
-
-  // Add git data slice
-  slices.set('git', {
-    scope: 'repository' as const,
-    name: 'git',
-    data: mockGitStatus,
-    loading: false,
-    error: null,
-    refresh: async () => {
-      console.log('[Mock] Refreshing git slice');
-    },
-  });
-
+export const createMockContext = <TData = {}>(
+  overrides?: Partial<PanelContextValue<TData>>
+): PanelContextValue<TData> => {
   return {
     currentScope: {
       type: 'repository' as const,
@@ -48,33 +34,11 @@ export const createMockContext = (
         remote: 'origin',
       },
     },
-    slices,
-    getSlice: (name: string) => {
-      console.log('[Mock] Getting slice:', name);
-      return slices.get(name);
-    },
-    getWorkspaceSlice: (name: string) => {
-      console.log('[Mock] Getting workspace slice:', name);
-      return slices.get(name);
-    },
-    getRepositorySlice: (name: string) => {
-      console.log('[Mock] Getting repository slice:', name);
-      return slices.get(name);
-    },
-    hasSlice: (name: string) => {
-      console.log('[Mock] Checking slice:', name);
-      return slices.has(name);
-    },
-    isSliceLoading: (name: string) => {
-      console.log('[Mock] Checking if slice is loading:', name);
-      const slice = slices.get(name);
-      return slice?.loading ?? false;
-    },
     refresh: async () => {
       console.log('[Mock] Context refresh called');
     },
     ...overrides,
-  };
+  } as PanelContextValue<TData>;
 };
 
 /**
