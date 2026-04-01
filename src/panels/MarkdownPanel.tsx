@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus, Minus, BookOpen, FileText } from 'lucide-react';
 import { useTheme } from '@principal-ade/industry-theme';
 import {
@@ -32,6 +32,22 @@ const getBasePath = (filePath: string): string => {
   return parts.join('/');
 };
 
+/**
+ * Information about a content change event
+ */
+export interface ContentChangeInfo {
+  /** The file path that changed */
+  path: string;
+  /** Previous content before the change */
+  previousContent: string;
+  /** New content after the change */
+  newContent: string;
+  /** Character count difference (positive = added, negative = removed) */
+  charDiff: number;
+  /** Timestamp of when the change was detected */
+  timestamp: number;
+}
+
 export interface MarkdownPanelProps
   extends PanelComponentProps<MarkdownPanelActions, MarkdownPanelContext> {
   /**
@@ -45,6 +61,12 @@ export interface MarkdownPanelProps
    * Useful when embedding in panels that need responsive width handling.
    */
   width?: number;
+  /**
+   * Optional callback when file content changes externally.
+   * Called with info about the change including previous/new content.
+   * Useful for implementing diff visualization or change animations.
+   */
+  onContentChange?: (change: ContentChangeInfo) => void;
 }
 
 /**
@@ -63,6 +85,7 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   events,
   filePath: filePathProp,
   width,
+  onContentChange,
 }) => {
   const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'document' | 'book'>('document');
@@ -70,6 +93,9 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
   const [fontSizeScale, setFontSizeScale] = useState<number>(1.0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
+  // Track previous content for change detection
+  const previousContentRef = useRef<{ path: string; content: string } | null>(null);
 
   // Local state for prop-based content loading (used when filePath prop is provided)
   const [propBasedContent, setPropBasedContent] = useState<{
@@ -188,6 +214,49 @@ export const MarkdownPanel: React.FC<MarkdownPanelProps> = ({
 
   // Get markdown content
   const markdownContent = activeFile?.data?.content || '';
+  const currentFilePath = activeFile?.data?.path || '';
+
+  // Detect content changes and notify via callback + event
+  useEffect(() => {
+    const prev = previousContentRef.current;
+
+    // Skip if no content yet or same file with same content
+    if (!markdownContent || !currentFilePath) {
+      return;
+    }
+
+    // Check if content actually changed (same file, different content)
+    if (prev && prev.path === currentFilePath && prev.content !== markdownContent) {
+      const changeInfo: ContentChangeInfo = {
+        path: currentFilePath,
+        previousContent: prev.content,
+        newContent: markdownContent,
+        charDiff: markdownContent.length - prev.content.length,
+        timestamp: Date.now(),
+      };
+
+      // Call callback if provided
+      if (onContentChange) {
+        onContentChange(changeInfo);
+      }
+
+      // Emit event for other listeners
+      events.emit({
+        type: 'markdown-panel:content-changed',
+        source: 'markdown-panel',
+        timestamp: Date.now(),
+        payload: changeInfo,
+      });
+
+      console.log('[MarkdownPanel] Content changed:', {
+        path: currentFilePath,
+        charDiff: changeInfo.charDiff,
+      });
+    }
+
+    // Update ref with current content
+    previousContentRef.current = { path: currentFilePath, content: markdownContent };
+  }, [markdownContent, currentFilePath, onContentChange, events]);
 
   // Parse markdown into slides using themed-markdown utility
   const presentation = useMemo(

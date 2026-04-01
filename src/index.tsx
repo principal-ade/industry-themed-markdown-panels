@@ -1,5 +1,5 @@
 import { MarkdownPanel } from './panels/MarkdownPanel';
-import type { MarkdownPanelProps } from './panels/MarkdownPanel';
+import type { MarkdownPanelProps, ContentChangeInfo } from './panels/MarkdownPanel';
 import type {
   PanelDefinition,
   PanelContextValue,
@@ -10,7 +10,7 @@ import { markdownPanelTools, markdownPanelToolsMetadata } from './tools';
 
 // Export the component and its props type
 export { MarkdownPanel };
-export type { MarkdownPanelProps };
+export type { MarkdownPanelProps, ContentChangeInfo };
 
 /**
  * Export array of panel definitions.
