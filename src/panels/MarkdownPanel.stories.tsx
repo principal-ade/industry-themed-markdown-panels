@@ -34,9 +34,8 @@ This is a demonstration of the Markdown Panel with industry theming support.
 ## Features
 
 - **Themed rendering** using industry-theme
-- Support for both document and book view modes
+- Document layout
 - Font size controls
-- Slide navigation for presentations
 
 ## Code Example
 
